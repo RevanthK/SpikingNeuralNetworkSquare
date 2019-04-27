@@ -212,17 +212,17 @@ def train(inputs, update_weights=None, ans=None):
     return st, currents, pots
 
 def report(st, currents, pots):
-    print "Output: ", sum(st[3][0])
-    print "ST Fires: ", [sum(x) / mult for x in st[0]]
-    print "Input Fires: ", [sum(x) for x in st[1]]
-    print "Hidden Fires: ", [sum(x) for x in st[2]]
+    print("Output: ", sum(st[3][0]))
+    print("ST Fires: ", [sum(x) / mult for x in st[0]])
+    print("Input Fires: ", [sum(x) for x in st[1]])
+    print("Hidden Fires: ", [sum(x) for x in st[2]])
 
-    print "Input Currents: ", [x[-1] for x in currents[1]]
-    print "Hidden Currents: ", [x[-1] for x in currents[2]]
+    print("Input Currents: ", [x[-1] for x in currents[1]])
+    print("Hidden Currents: ", [x[-1] for x in currents[2]])
 
-    print "Input Pots: ", pots[-1][1]
-    print "Hidden Pots: ", pots[-1][2]
-    print "-----------------------"
+    print("Input Pots: ", pots[-1][1])
+    print("Hidden Pots: ", pots[-1][2])
+    print("-----------------------")
 
 
 def main():
@@ -233,9 +233,9 @@ def main():
     else:
         return
 
-    print "Start Weights: "
-    print weights[1]
-    print weights[2]
+    print("Start Weights: ")
+    print(weights[1])
+    print(weights[2])
 
     for i in range(iters):
         st, currents, pots = train([1, 1], update_rule, [0, 1, 0])
@@ -245,9 +245,9 @@ def main():
 
         # print [x.v for x in neurons[1]]
 
-    print "After: "
-    print weights[1]
-    print weights[2]
+    print("After: ")
+    print(weights[1])
+    print(weights[2])
 
     global log
     log = True
@@ -256,19 +256,19 @@ def main():
     weights[2][0][1] = 0
     weights[2][0][2] = 0'''
     
-    print "0 0"
+    print("0 0")
     st, currents, pots = train([0, 0]) # test
     report(st, currents, pots)
 
-    print "0 1"
+    print("0 1")
     st, currents, pots = train([0, 1]) # test
     report(st, currents, pots)
 
-    print "1 0"
+    print("1 0")
     st, currents, pots = train([1, 0]) # test
     report(st, currents, pots)
 
-    print "1 1"
+    print("1 1")
     st, currents, pots = train([1, 1]) # test
     report(st, currents, pots)
 

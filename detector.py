@@ -103,7 +103,7 @@ def main():
 
         st = run(input)
 
-        print str(angle) + " & " + report(st) # , dx, dy, tan(radians(angle))
+        print(str(angle) + " & " + report(st)) # , dx, dy, tan(radians(angle))
 
         
         '''for i in range(dimen):
