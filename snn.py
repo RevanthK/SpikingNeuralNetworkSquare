@@ -48,6 +48,19 @@ neurons = [
 neurons[1][0].inhib = True # NAND gate
 
 
+
+def layer_square(n, input):
+    x_length = len(input[0])
+    x_bound = x_length - n
+    y_length = len(input)
+    y_bound = y_length - n
+
+    top_lefts = [[None for x in range(x_bound)] for y in range(y_bound)]
+
+    for i in range(top_lefts):
+        for j in range(top_lefts[0]):
+
+
 times = arange(0, T + dt, dt)
 
 # integrate even the first layer
