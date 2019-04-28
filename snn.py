@@ -6,14 +6,11 @@ from math import *
 from neuron import neuron
 from rules import *
 from spike_train import *
+from lines import gen_square
 
 from sys import argv
 
 iters = 100
-
-input_size = 2
-hidden_size = 2
-output_size = 1
 
 T = 25
 dt = .1
@@ -33,23 +30,33 @@ win = 20
 
 log = False
 
-weights = [
-    full((input_size, 2), 1),
-    [[1 for x in range(input_size)] + [0, 0] for x in range(hidden_size)],
-    [[1 for x in range(hidden_size)] + [1] for x in range(output_size)]
-]
+square_sizes = [2, 4, 6]
 
+def_size = 4 # default square size
+dimen = 10
+
+input_size = dimen ** 2
+
+#TODO: Scale each layer by num of sizes 
 neurons = [
-    [neuron() for x in range(input_size)],
-    [neuron() for x in range(hidden_size)],
-    [neuron() for x in range(output_size)]
+    [neuron() for x in range(dimen**2)], # Input Layer 
+    [neuron() for x in range((dimen - def_size) ** 2))], # Bounding Box Layer
+    [neuron() for x in range(1)] # Output OR Gate
 ]
 
-neurons[1][0].inhib = True # NAND gate
+weights = gen_weights(dimen ** 2, neurons)
+
+def gen_weights(input_size, neurons):
+    weights = []
+    weights.append(full((input_size, len(neurons[0])), 1))
+
+    for i in range(1, len(neurons)):
+        weights.append(full(len(neurons[i - 1], len(neurons[i])), 1))
+    
+    return weights
 
 
-
-def layer_square(n, input):
+'''def layer_square(n, input):
     x_length = len(input[0])
     x_bound = x_length - n
     y_length = len(input)
@@ -58,7 +65,7 @@ def layer_square(n, input):
     top_lefts = [[None for x in range(x_bound)] for y in range(y_bound)]
 
     for i in range(top_lefts):
-        for j in range(top_lefts[0]):
+        for j in range(top_lefts[0]):'''
 
 
 times = arange(0, T + dt, dt)
@@ -73,35 +80,15 @@ def integrate(i, layer, st, currents, teach=False):
                 prev_currents[j] = i_inc
             else:
                 prev_currents = currents[layer - 1][:, i]
-            
-            # print "cok", layer
-            # print layer, len(prev_currents), len(st[layer - 1][:, i])
 
             res_currents = multiply(prev_currents, st[layer - 1][:, i])
 
-            # print layer, res_currents, weights[layer - 1][j]
-
-
             dv = dot(weights[layer - 1][j], res_currents)
-
-            if layer == 2 and teach:
-                dv += prev_currents[input_size + j]
-            elif layer == 2:
-                # print "Layer 2 dv: ", dv
-                pass
-
-            if n.inhib:
-                dv = i_max - dv
-                # print "Inhib Dv: ", dv
 
             n.v += dv
 
             if n.v > n.v_rest:
                 n.v -= v_decay
-
-            if layer == 2 and dv > 0 and log:
-                # print n.v, layer, j, dv, currents[layer][j][i - 1]
-                pass
     
     for j, n in enumerate(neurons[layer -  1]):
         res = n.is_spike()
@@ -118,85 +105,30 @@ def integrate(i, layer, st, currents, teach=False):
             currents[layer][j][i] -= i_decay # maybe allow neg currents
 
 
-
 def update_ojas(i, layer, st, neurons):
     for j, n in enumerate(neurons[layer - 1]):
         for k, f in enumerate(neurons[layer - 2]):
             f = st[layer - 1][k][i]
             s = st[layer][j][i]
 
-            if layer == 3 and k == 1:
-                # print f, s, rule(f, s, weights[layer - 1][j][k])
-                pass
-
-            # print f, s
             weights[layer - 1][j][k] += ojas(f, s, weights[layer - 1][j][k])
 
-def update_stdp(i, layer, st, neurons):
-    for j, x in enumerate(neurons[layer - 1]):
-        curr_st = st[layer][j]
-        if curr_st[i] != 1:
-            continue
 
-        for k, y in enumerate(neurons[layer - 2]):
-            prev_st = st[layer - 1][k]
+def train(inputs, sizes, update_weights=None, ans=None):
+    inputs = flatten(inputs)
 
-            for pos in range(i - win, i + win):
-                if pos < 0 or pos >= len(times):
-                    continue
-                
-                if prev_st[pos] == 1:
-                    # print layer, j, k
-                    weights[layer - 1][j][k] = stdp(weights[layer - 1][j][k], pos - i)
-
-
-    
-def train(inputs, update_weights=None, ans=None):
     for layer in neurons:
         for neuron in layer:
             neuron.clear()
 
-    teach = (not ans is None)
-
-    if (not ans is None):
-        val = 1
-
-        if ans[0]:
-            nand_current = teach_current
-        else:
-            nand_current = -teach_current
-
-        if ans[1]:
-            or_current = teach_current
-        else:
-            or_current = -teach_current
-
-        if ans[2]:
-            xor_current = teach_current
-        else:
-            xor_current = -teach_current
-    else:
-        val = 0
-        nand_current = 0
-        or_current = 0
-        xor_current = 0
-
-    hidden_st = [[0 for x in times] for y in range(hidden_size)] + [full(len(times), val)]
+    hidden_st = [[0 for x in times] for y in range(hidden_size)]
     
-    st = [
-        array([gen_st(x, len(times), mult) for x in inputs]),
-        array([[0 for x in times] for y in range(input_size)] + [[1 for x in times], [1 for x in times]]),
-        array(hidden_st),
-        array([[0 for x in times] for y in range(output_size)])
-    ]
-
+    st = [array([gen_st(x, len(times), mult) for x in inputs])]
+    st += [zeros((1, len(x)) for x in neurons]
 
     input_currents = [zeros(len(times)) for x in range(input_size)]
     
-    input_currents += [full(len(times), nand_current)]
-    input_currents += [full(len(times), or_current)]
-    
-    hidden_currents = [zeros(len(times)) for x in range(hidden_size)] + [full(len(times), teach_current)]
+    hidden_currents = [zeros(len(times)) for x in range(hidden_size)]
     
     currents = [
         full((2, len(times)), i_inc),
@@ -204,10 +136,6 @@ def train(inputs, update_weights=None, ans=None):
         array(hidden_currents),
         zeros((output_size, len(times)))
     ]
-
-    # print currents[1]
-
-    # print "Length: ", len(st[1]), len(st[1][:, 0])
 
     pots = []
 
@@ -241,49 +169,23 @@ def report(st, currents, pots):
 def main():
     if int(argv[1]) == 0:
         update_rule = update_ojas
-    elif int(argv[1]) == 1:
-        update_rule = update_stdp
     else:
         return
 
     print("Start Weights: ")
     print(weights[1])
     print(weights[2])
-
+    
+    # TODO: Train on diff locations
     for i in range(iters):
-        st, currents, pots = train([1, 1], update_rule, [0, 1, 0])
-        st, currents, pots = train([0, 1], update_rule, [1, 1, 1])
-        st, currents, pots = train([1, 0], update_rule, [1, 1, 1])
-        st, currents, pots = train([0, 0], update_rule, [1, 0, 0])
+        st, currents, pots = train(gen_square([0, 0], 2, 10), update_rule, [1, 0, 0]) # 2
+        st, currents, pots = train(gen_square([0, 0], 4, 10), update_rule, [0, 1, 0]) # 4
+        st, currents, pots = train(gen_square([0, 0], 6, 10), update_rule, [0, 0, 1]) # 6
 
-        # print [x.v for x in neurons[1]]
 
     print("After: ")
     print(weights[1])
     print(weights[2])
 
-    global log
-    log = True
-    
-    '''weights[2][0][0] = 0
-    weights[2][0][1] = 0
-    weights[2][0][2] = 0'''
-    
-    print("0 0")
-    st, currents, pots = train([0, 0]) # test
-    report(st, currents, pots)
 
-    print("0 1")
-    st, currents, pots = train([0, 1]) # test
-    report(st, currents, pots)
-
-    print("1 0")
-    st, currents, pots = train([1, 0]) # test
-    report(st, currents, pots)
-
-    print("1 1")
-    st, currents, pots = train([1, 1]) # test
-    report(st, currents, pots)
-
-main()
 

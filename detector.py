@@ -105,18 +105,4 @@ def main():
 
         print(str(angle) + " & " + report(st)) # , dx, dy, tan(radians(angle))
 
-        
-        '''for i in range(dimen):
-            print input[i]
-        
-        print "-----------"'''
-        
-
-        
-
-    # report(st)
-
-        # pots.append([[x.v for x in layer] for layer in neurons])
-
-
 main()
