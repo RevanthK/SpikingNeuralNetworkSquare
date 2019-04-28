@@ -34,12 +34,11 @@ def_size = 4 # default square size
 dimen = 10
 
 input_size = dimen ** 2
-
-#TODO: Scale each layer by num of sizes 
+ 
 neurons = [
-    [neuron() for x in range(input_size)], # Input Layer 
-    [neuron() for x in range((dimen - def_size) ** 2)], # Bounding Box Layer
-    [neuron() for x in range(1)] # Output OR Gate
+    [neuron() for x in range(input_size * len(square_sizes))], # Input Layer 
+    [neuron() for x in range(sum([(dimen - sq_size) ** 2 for sq_size in square_sizes]))], # Bounding Box Layer
+    [neuron() for x in range(len(square_sizes))] # Output OR Gate
 ]
 
 def gen_weights(input_size, neurons):
@@ -95,7 +94,7 @@ def update_ojas(i, layer, st, neurons):
         for k, f in enumerate(neurons[layer - 2]):
             f = st[layer - 1][k][i]
             s = st[layer][j][i]
-
+            
             weights[layer - 1][j][k] += ojas(f, s, weights[layer - 1][j][k])
 
 
