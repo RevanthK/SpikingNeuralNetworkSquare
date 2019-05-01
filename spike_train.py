@@ -2,6 +2,7 @@ one_freq = .8
 zero_freq = .2
 
 def gen_st(num, arr_size, mult=1):
+    
     if num:
         freq = one_freq
     else:
@@ -20,10 +21,13 @@ def gen_st(num, arr_size, mult=1):
     num_minors = int(len(spike_train) * freq)
     num_majors = len(spike_train) - num_minors
 
-    delta_majors = num_majors / num_minors
+    delta_majors = int(num_majors / num_minors)
     # print len(spike_train), num_majors, num_minors, delta_majors
 
+    
+
     i = 0
+    
     while i < len(spike_train):
         spike_train[i] = minor
         i += delta_majors

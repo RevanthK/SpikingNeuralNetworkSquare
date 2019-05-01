@@ -1,7 +1,7 @@
 from numpy import *
 from pylab import *
 from random import randint
-from math import * 
+from math import *
 
 from neuron import neuron
 from rules import *
@@ -10,7 +10,7 @@ from lines import gen_square
 
 from sys import argv
 
-iters = 10 # How many times to train
+iters = 3 # How many times to train
 
 T = 25
 dt = .1
@@ -18,40 +18,44 @@ dt = .1
 
 i_inc = .5 # current delta for spike
 i_decay = .001
-i_max = .5 
+i_max = .5
 
 v_decay = .1
 
 teach_current = 20
 
-mult = 10 # spike value in spike train
+mult = 1 # spike value in spike train
 
 log = False
 
-square_sizes = [4]
+square_sizes = [8]
 
 def_size = 4 # default square size
 dimen = 10
 
 input_size = dimen ** 2
- 
+
 neurons = [
-    [neuron() for x in range(input_size * len(square_sizes))], # Input Layer 
-    [neuron() for x in range(sum([(dimen - sq_size) ** 2 for sq_size in square_sizes]))], # Bounding Box Layer
+    [neuron() for x in range(input_size+1)], # Input Layer
+    [neuron() for x in range(sum([sq_size ** 2 for sq_size in square_sizes]))], # Bounding Box Layer
     [neuron() for x in range(len(square_sizes))] # Output OR Gate
 ]
 
 def gen_weights(input_size, neurons):
     weights = []
-    weights.append(full((input_size, len(neurons[0])), 1))
-
+    weights.append(full((input_size+1, len(neurons[0])), 1))
+    print("______")
     for i in range(1, len(neurons)):
         weights.append(full((len(neurons[i]), len(neurons[i - 1])), 1))
-        # print weights[i].shape
-    
+        print(weights[i].shape)
+    print("______")
     return weights
 
 weights = gen_weights(dimen ** 2, neurons)
+print(weights[1].shape)
+print(full((1, len(neurons[1])), 1).shape)
+# weights[1] = np.append(weights[1], full((len(neurons[1]), 1), 1), axis=1)
+print(weights[1].shape)
 
 times = arange(0, T + dt, dt)
 
@@ -60,18 +64,22 @@ def integrate(i, layer, st, currents, teach=False):
     # Update potentials
     for j, n in enumerate(neurons[layer - 1]):
         if n.t_rest < times[i]:
+            # print(currents[layer-1])
             prev_currents = currents[layer - 1][:, i]
 
+            # print(prev_currents.shape)
             res_currents = multiply(prev_currents, st[layer - 1][:, i])
 
-            # print layer, weights[layer - 1][j].shape, res_currents.shape
+            # print(layer)
+            # print(weights[layer - 1].shape)
+            # print(res_currents.shape)
             dv = dot(weights[layer - 1][j], res_currents)
 
             n.v += dv
 
             if n.v > n.v_rest:
                 n.v -= v_decay
-    
+
     # Update spike trains/currents
     for j, n in enumerate(neurons[layer -  1]):
         res = n.is_spike()
@@ -84,7 +92,7 @@ def integrate(i, layer, st, currents, teach=False):
             n.v = n.v_rest
 
             st[layer][j][i] = 1
-        
+
         if currents[layer][j][i] > 0:
             currents[layer][j][i] -= i_decay # maybe allow neg currents
 
@@ -94,23 +102,31 @@ def update_ojas(i, layer, st, neurons):
         for k, f in enumerate(neurons[layer - 2]):
             f = st[layer - 1][k][i]
             s = st[layer][j][i]
-            
+
             weights[layer - 1][j][k] += ojas(f, s, weights[layer - 1][j][k])
 
 
 def train(inputs, update_weights=None, ans=None):
+    if ans is None and weights is None:
+        weights[1] = np.load("weights1.npy")
+        weights[2] = np.load("weights2.npy")
     inputs = inputs.flatten()
 
     for layer in neurons:
         for neuron in layer:
             neuron.clear()
-    
+
     st = [array([array(gen_st(x, len(times), mult)) for x in inputs])]
     st += [zeros((len(x), len(times))) for x in neurons]
-    
+    st[0] = np.append(st[0], [[1]*len(times)], axis=0)
+
+    if ans is not None:
+        weights[1][-1][ans] = 1
 
     currents = [full((input_size, len(times)), i_inc)]
     currents += [zeros((len(x), len(times))) for x in neurons]
+    currents[0] = np.append(currents[0], [[teach_current] * len(times)], axis=0)
+    # print(currents[0])
 
     pots = []
 
@@ -124,7 +140,10 @@ def train(inputs, update_weights=None, ans=None):
         if (bool(update_weights)):
             update_weights(i, 2, st, neurons)
             update_weights(i, 3, st, neurons)
-    
+
+    if ans is not None:
+        weights[1][-1][ans] = 0
+
     return st, currents, pots
 
 def report(st, currents, pots):
@@ -142,27 +161,36 @@ def report(st, currents, pots):
 
 
 def main():
-    if int(argv[1]) == 0:
+    if len(argv) == 2:
         update_rule = update_ojas
     else:
-        return
+        update_rule = None
 
     print("Start Weights: ")
     print(weights[1])
     print(weights[2])
-    
-    for i in range(iters):
-        for sq_i, sq_size in enumerate(square_sizes):
-            for x in range(dimen - sq_size):
-                for y in range(dimen - sq_size):
-                    ans = zeros(len(square_sizes))
-                    ans[sq_i] = 1
 
-                    st, currents, pots = train(gen_square([x, y], sq_size, 10), update_rule, ans) 
-                
+    for i in range(iters):
+        print(i)
+        cumul = 0
+        for sq_i, sq_size in enumerate(square_sizes):
+            track = 0
+            for x in range(dimen - sq_size + 1):
+                for y in range(dimen - sq_size + 1):
+                    print("at (" + str(x) + ", " + str(y) + ")")
+                    ans = cumul + track
+                    st, currents, pots = train(gen_square([x, y], sq_size, 10), update_rule, ans)
+                    last_layer = st[-1]
+                    sums = [sum(x) for x in last_layer]
+                    print(sums)
+                    track += 1
+            cumul += sq_size**2
+
     print("After: ")
     print(weights[1])
     print(weights[2])
+    np.save("weights1", weights[1])
+    np.save("weights2", weights[2])
 
 main()
 
