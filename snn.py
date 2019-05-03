@@ -29,6 +29,7 @@ mult = 1 # spike value in spike train
 log = False
 
 square_sizes = [8]
+test_square_sizes = [3,5,8]
 
 def_size = 4 # default square size
 dimen = 10
@@ -37,25 +38,22 @@ input_size = dimen ** 2
 
 neurons = [
     [neuron() for x in range(input_size+1)], # Input Layer
-    [neuron() for x in range(sum([sq_size ** 2 for sq_size in square_sizes]))], # Bounding Box Layer
-    [neuron() for x in range(len(square_sizes))] # Output OR Gate
+    [neuron() for x in range(1 + sum([(dimen-sq_size+1) ** 2 for sq_size in square_sizes]))], # Bounding Box Layer
+    [neuron() for x in range(len(square_sizes) + dimen**2)] # Output OR Gate
 ]
 
 def gen_weights(input_size, neurons):
     weights = []
-    weights.append(full((input_size+1, len(neurons[0])), 1))
-    print("______")
+    weights.append(np.random.randn(input_size+1, len(neurons[0])))
     for i in range(1, len(neurons)):
-        weights.append(full((len(neurons[i]), len(neurons[i - 1])), 1))
-        print(weights[i].shape)
-    print("______")
+        weights.append(np.random.randn(len(neurons[i]), len(neurons[i - 1])))
+    print(weights[0].shape)
+    print(weights[1].shape)
+    print(weights[2].shape)
     return weights
 
 weights = gen_weights(dimen ** 2, neurons)
-print(weights[1].shape)
-print(full((1, len(neurons[1])), 1).shape)
 # weights[1] = np.append(weights[1], full((len(neurons[1]), 1), 1), axis=1)
-print(weights[1].shape)
 
 times = arange(0, T + dt, dt)
 
@@ -106,8 +104,8 @@ def update_ojas(i, layer, st, neurons):
             weights[layer - 1][j][k] += ojas(f, s, weights[layer - 1][j][k])
 
 
-def train(inputs, update_weights=None, ans=None):
-    if ans is None and weights is None:
+def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
+    if update_weights is None:
         weights[1] = np.load("weights1.npy")
         weights[2] = np.load("weights2.npy")
     inputs = inputs.flatten()
@@ -119,16 +117,36 @@ def train(inputs, update_weights=None, ans=None):
     st = [array([array(gen_st(x, len(times), mult)) for x in inputs])]
     st += [zeros((len(x), len(times))) for x in neurons]
     st[0] = np.append(st[0], [[1]*len(times)], axis=0)
+    # st[2] = np.append(st[2], [[1] * len(times)], axis=0)
 
     if ans is not None:
-        weights[1][-1][ans] = 1
+        weights[1][ans][-1] = 1
+    else:
+        weights[1][ans][-1] = 0
 
-    currents = [full((input_size, len(times)), i_inc)]
+    if ans_two is not None:
+        weights[2][ans_two][-1] = 1
+        weights[2][dimen**2 + ans_three][-1] = 1
+    else:
+        weights[2][ans_two][-1] = 0
+        weights[2][dimen ** 2 + ans_three][-1] = 0
+
+    currents = [full((input_size+1, len(times)), i_inc)]
     currents += [zeros((len(x), len(times))) for x in neurons]
-    currents[0] = np.append(currents[0], [[teach_current] * len(times)], axis=0)
+
+    # currents[1] = np.append(currents[1], [[teach_current] * len(times)], axis=0)
+    # currents[2] = np.append(currents[2], [[teach_current] * len(times)], axis=0)
     # print(currents[0])
 
     pots = []
+
+    print(currents[0].shape)
+    print(currents[1].shape)
+    print(currents[2].shape)
+    print(currents[3].shape)
+    # print(len(neurons[0]))
+    # print(len(neurons[1]))
+    # print(len(neurons[2]))
 
     for i, t in enumerate(times):
         integrate(i, 1, st, currents, bool(ans))
@@ -141,8 +159,10 @@ def train(inputs, update_weights=None, ans=None):
             update_weights(i, 2, st, neurons)
             update_weights(i, 3, st, neurons)
 
-    if ans is not None:
-        weights[1][-1][ans] = 0
+    weights[1][ans][-1] = 0
+
+    weights[2][ans_two][-1] = 0
+    weights[2][dimen ** 2 + ans_three][-1] = 0
 
     return st, currents, pots
 
@@ -179,12 +199,13 @@ def main():
                 for y in range(dimen - sq_size + 1):
                     print("at (" + str(x) + ", " + str(y) + ")")
                     ans = cumul + track
-                    st, currents, pots = train(gen_square([x, y], sq_size, 10), update_rule, ans)
+                    st, currents, pots = train(gen_square([x, y], sq_size, 10), update_rule, ans, dimen*x+y, sq_i)
                     last_layer = st[-1]
                     sums = [sum(x) for x in last_layer]
                     print(sums)
                     track += 1
-            cumul += sq_size**2
+                    print(weights)
+            cumul += (dimen-sq_size+1)**2
 
     print("After: ")
     print(weights[1])

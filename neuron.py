@@ -3,7 +3,7 @@ class neuron:
         self.inhib = inhib
         self.on = on
         self.t_delay = .1
-        self.v_t = 2
+        self.v_t = 15.10
         self.v_rest = 0
         self.v_min = 0
         self.r = 1
