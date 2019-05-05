@@ -29,7 +29,7 @@ mult = 1 # spike value in spike train
 
 log = False
 
-square_sizes = [3,4,5,6,7,8,9,10]
+square_sizes = [7]
 
 dimen = 10
 
@@ -117,15 +117,9 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
 
     if ans is not None:
         weights[1][ans][-1] = 1
-    else:
-        weights[1][ans][-1] = 0
-
-    if ans_two is not None:
         weights[2][ans_two][-1] = 1
         weights[2][dimen**2 + ans_three][-1] = 1
-    else:
-        weights[2][ans_two][-1] = 0
-        weights[2][dimen ** 2 + ans_three][-1] = 0
+
 
     currents = [full((input_size+1, len(times)), i_inc)]
     currents += [zeros((len(x), len(times))) for x in neurons]
@@ -155,10 +149,10 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
             update_weights(i, 2, st, neurons)
             update_weights(i, 3, st, neurons)
 
-    weights[1][ans][-1] = 0
-
-    weights[2][ans_two][-1] = 0
-    weights[2][dimen ** 2 + ans_three][-1] = 0
+    if ans is not None:
+        weights[1][ans][-1] = 0
+        weights[2][ans_two][-1] = 0
+        weights[2][dimen ** 2 + ans_three][-1] = 0
 
     return st, currents, pots
 
@@ -209,6 +203,10 @@ def main():
         print("Running: ")
         weights[1] = np.load("weights1.npy")
         weights[2] = np.load("weights2.npy")
+
+    with open('test_squares.txt', 'rb+') as f:
+        test_squares = pickle.load(f)
+        matrices = test_squares[0]
         for matrix in matrices:
             st, currents, pots = train(matrix, None)
             last_layer = st[-1]

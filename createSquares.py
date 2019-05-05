@@ -3,7 +3,7 @@ from lines import gen_square
 
 def createSquares(dimen):
 
-    square_sizes = range(3, dimen+1)
+    square_sizes = [3,4,5,6,7,8,9,10]
 
     matrices = []
     answers = []
@@ -11,7 +11,7 @@ def createSquares(dimen):
     if(dimen < 3):
         print("size is too small")
 
-    with open("squares.txt", "wb+") as f:
+    with open("test_squares.txt", "wb+") as f:
         #for all matrix sizes
             #for all positions
         cumul = 0
