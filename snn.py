@@ -9,6 +9,7 @@ from spike_train import *
 from lines import gen_square
 
 from sys import argv
+import pickle
 
 iters = 3 # How many times to train
 
@@ -28,10 +29,8 @@ mult = 1 # spike value in spike train
 
 log = False
 
-square_sizes = [8]
-test_square_sizes = [3,5,8]
+square_sizes = [3,4,5,6,7,8,9,10]
 
-def_size = 4 # default square size
 dimen = 10
 
 input_size = dimen ** 2
@@ -105,9 +104,6 @@ def update_ojas(i, layer, st, neurons):
 
 
 def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
-    if update_weights is None:
-        weights[1] = np.load("weights1.npy")
-        weights[2] = np.load("weights2.npy")
     inputs = inputs.flatten()
 
     for layer in neurons:
@@ -140,10 +136,10 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
 
     pots = []
 
-    print(currents[0].shape)
-    print(currents[1].shape)
-    print(currents[2].shape)
-    print(currents[3].shape)
+    # print(currents[0].shape)
+    # print(currents[1].shape)
+    # print(currents[2].shape)
+    # print(currents[3].shape)
     # print(len(neurons[0]))
     # print(len(neurons[1]))
     # print(len(neurons[2]))
@@ -181,37 +177,47 @@ def report(st, currents, pots):
 
 
 def main():
-    if len(argv) == 2:
-        update_rule = update_ojas
-    else:
-        update_rule = None
+    with open("squares.txt", 'rb') as f:
+        examples = pickle.load(f)
+        matrices = examples[0]
+        answers = examples[1]
+        if len(argv) == 2:
+            print("Start Weights: ")
+            print(weights[1])
+            print(weights[2])
 
-    print("Start Weights: ")
-    print(weights[1])
-    print(weights[2])
-
-    for i in range(iters):
-        print(i)
-        cumul = 0
-        for sq_i, sq_size in enumerate(square_sizes):
-            track = 0
-            for x in range(dimen - sq_size + 1):
-                for y in range(dimen - sq_size + 1):
-                    print("at (" + str(x) + ", " + str(y) + ")")
-                    ans = cumul + track
-                    st, currents, pots = train(gen_square([x, y], sq_size, 10), update_rule, ans, dimen*x+y, sq_i)
+            for i in range(iters):
+                print(i)
+                for j in range(len(matrices)):
+                    print(matrices[j])
+                    print(answers[j])
+                    st, currents, pots = train(matrices[i], update_ojas, answers[i][0], answers[i][1], answers[i][2])
                     last_layer = st[-1]
                     sums = [sum(x) for x in last_layer]
                     print(sums)
-                    track += 1
-                    print(weights)
-            cumul += (dimen-sq_size+1)**2
+                    print(weights[1])
+                    print(weights[2])
+                    print()
+            print("After: ")
+            print(weights[1])
+            print(weights[2])
+            np.save("weights1", weights[1])
+            np.save("weights2", weights[2])
 
-    print("After: ")
-    print(weights[1])
-    print(weights[2])
-    np.save("weights1", weights[1])
-    np.save("weights2", weights[2])
+        print("\n")
+
+        print("Running: ")
+        weights[1] = np.load("weights1.npy")
+        weights[2] = np.load("weights2.npy")
+        for matrix in matrices:
+            st, currents, pots = train(matrix, None)
+            last_layer = st[-1]
+            sums = [sum(x) for x in last_layer]
+            print(sums)
+
+
+
+
 
 main()
 

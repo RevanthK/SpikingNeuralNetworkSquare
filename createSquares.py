@@ -1,41 +1,38 @@
-def createSquares(size):
+import pickle
+from lines import gen_square
 
-    if(size < 3):
+def createSquares(dimen):
+
+    square_sizes = range(3, dimen+1)
+
+    matrices = []
+    answers = []
+
+    if(dimen < 3):
         print("size is too small")
 
-    with open("squares.txt", "w+") as f:
+    with open("squares.txt", "wb+") as f:
         #for all matrix sizes
-        for matrixSize in range(3, size+1):
             #for all positions
-            for x in range(0, size-matrixSize+1):
-                for y in range(0, size-matrixSize+1):
-                    #initalize matrix to 0
-                    matrix = [[0 for x in range(size)] for y in range(size)] 
+        cumul = 0
+        for sq_i, sq_size in enumerate(square_sizes):
+            track = 0
+            for x in range(dimen - sq_size + 1):
+                for y in range(dimen - sq_size + 1):
+                    matrix = gen_square([x, y], sq_size, dimen)
+                    ans = cumul + track
+                    answer = [ans, dimen * x + y, sq_i]
+                    answers.append(answer)
+                    matrices.append(matrix)
+                    track += 1
+            cumul += (dimen - sq_size + 1) ** 2
 
-                    #make square
-                    for j in range(x,x+matrixSize):
-                        matrix[j][y] = 1
-
-                    for j in range(x,x+matrixSize):
-                        matrix[j][y+matrixSize-1] = 1     
-
-                    for j in range(y,y+matrixSize):
-                        matrix[x][j] = 1
-
-                    for j in range(y,y+matrixSize):
-                        matrix[x+matrixSize-1][j] = 1
-
-                    # print("x/y: ",x,y)
-                    
-                    f.write("\n#########\n")
-                    for row in matrix:
-                        f.write(str(row) + "\n")
-
+        pickle.dump([matrices, answers], f)
                     
 
 
 
 if __name__ == '__main__':
-    size = 5
+    size = 10
 
     createSquares(size)
