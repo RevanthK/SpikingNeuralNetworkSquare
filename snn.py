@@ -29,7 +29,7 @@ mult = 1 # spike value in spike train
 
 log = False
 
-square_sizes = [7]
+square_sizes = [5,7]
 
 dimen = 10
 
@@ -43,9 +43,11 @@ neurons = [
 
 def gen_weights(input_size, neurons):
     weights = []
-    weights.append(np.random.randn(input_size+1, len(neurons[0])))
+    weights.append(full((input_size+1, len(neurons[0])), 1))
     for i in range(1, len(neurons)):
         weights.append(np.random.randn(len(neurons[i]), len(neurons[i - 1])))
+        for k in range(len(neurons[i-1])):
+            weights[-1][len(neurons[i])-1][k] = 0
     print(weights[0].shape)
     print(weights[1].shape)
     print(weights[2].shape)
@@ -97,10 +99,12 @@ def integrate(i, layer, st, currents, teach=False):
 def update_ojas(i, layer, st, neurons):
     for j, n in enumerate(neurons[layer - 1]):
         for k, f in enumerate(neurons[layer - 2]):
-            f = st[layer - 1][k][i]
-            s = st[layer][j][i]
-
-            weights[layer - 1][j][k] += ojas(f, s, weights[layer - 1][j][k])
+            if k == len(neurons[layer-2]) - 1:
+                pass
+            else:
+                f = st[layer - 1][k][i]
+                s = st[layer][j][i]
+                weights[layer - 1][j][k] += ojas(f, s, weights[layer - 1][j][k])
 
 
 def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
@@ -208,10 +212,12 @@ def main():
         test_squares = pickle.load(f)
         matrices = test_squares[0]
         for matrix in matrices:
+            print(matrix)
             st, currents, pots = train(matrix, None)
             last_layer = st[-1]
             sums = [sum(x) for x in last_layer]
             print(sums)
+            print("\n")
 
 
 
