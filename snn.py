@@ -43,11 +43,16 @@ neurons = [
 
 def gen_weights(input_size, neurons):
     weights = []
-    weights.append(full((input_size+1, len(neurons[0])), 1))
+    weights.append(full((input_size+1, len(neurons[0])), 0))
+
+    for i in range(input_size):
+        weights[0][i] = 1
+
     for i in range(1, len(neurons)):
         weights.append(np.random.randn(len(neurons[i]), len(neurons[i - 1])))
         for k in range(len(neurons[i-1])):
             weights[-1][len(neurons[i])-1][k] = 0.00001 
+            
     print(weights[0].shape)
     print(weights[1].shape)
     print(weights[2].shape)
@@ -83,6 +88,7 @@ def integrate(i, layer, st, currents, teach=False):
     for j, n in enumerate(neurons[layer -  1]):
         res = n.is_spike()
         currents[layer][j][i] =  currents[layer][j][i - 1]
+
         if res:
             # print "Spiked ", layer, j, i
             currents[layer][j][i] += i_inc
@@ -109,6 +115,9 @@ def update_ojas(i, layer, st, neurons):
 
 
 def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
+    print("RIGHT ANSWER")
+    print(ans, ans_two, ans_three)
+
     inputs = inputs.flatten()
 
     for layer in neurons:
@@ -116,6 +125,8 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
             neuron.clear()
 
     st = [array([array(gen_st(x, len(times), mult)) for x in inputs])]
+    print("FIRST ST", [sum(x) for x in st[0]])
+
     st += [zeros((len(x), len(times))) for x in neurons]
     st[0] = np.append(st[0], [[1]*len(times)], axis=0)
     # st[2] = np.append(st[2], [[1] * len(times)], axis=0)
@@ -124,8 +135,7 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
         weights[1][ans][-1] = 1
         weights[2][ans_two][-1] = 1
         weights[2][dimen**2 + ans_three][-1] = 1
-
-
+        
     currents = [full((input_size+1, len(times)), i_inc)]
     currents += [zeros((len(x), len(times))) for x in neurons]
 
@@ -146,6 +156,7 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
     for i, t in enumerate(times):
         integrate(i, 1, st, currents, bool(ans))
         integrate(i, 2, st, currents, bool(ans))
+
         integrate(i, 3, st, currents, bool(ans))
 
         pots.append([[x.v for x in layer] for layer in neurons])
@@ -192,11 +203,17 @@ def main():
                     print(answers[j])
                     st, currents, pots = train(matrices[i], update_ojas, answers[i][0], answers[i][1], answers[i][2])
                     last_layer = st[-1]
+
+                    return 
+
                     sums = [sum(x) for x in last_layer]
                     print(sums)
                     print(weights[1])
                     print(weights[2])
                     print()
+
+                    return 
+
             print("After: ")
             print(weights[1])
             print(weights[2])
@@ -220,5 +237,6 @@ def main():
             print(sums)
             print("\n")
 
-main()
+if __name__ == "__main__":
+    main()
 

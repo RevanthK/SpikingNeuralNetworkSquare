@@ -1,5 +1,5 @@
-one_freq = .8
-zero_freq = .2
+one_freq = .9
+zero_freq = .05
 
 def gen_st(num, arr_size, mult=1):
     
