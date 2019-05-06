@@ -29,7 +29,7 @@ mult = 1 # spike value in spike train
 
 log = False
 
-square_sizes = [5,7]
+square_sizes = [3]
 
 dimen = 10
 
@@ -46,10 +46,12 @@ def gen_weights(input_size, neurons):
 
 
     for i in range(input_size):
-        weights[0][i][i] = 1
+        weights[0][i][i] = 20
 
     for i in range(1, len(neurons)):
         weights.append(np.random.uniform(0, 1, (len(neurons[i]), len(neurons[i - 1]))))
+        # weights.append(full((len(neurons[i]), len(neurons[i - 1])), 1))
+
         '''for k in range(len(neurons[i-1])):
             weights[-1][k][len(neurons[i - 1])-1] = 0.00001
             print(weights[-1][len(neurons[i])-1][k])'''
@@ -116,16 +118,26 @@ def integrate(i, layer, st, currents, teach=False):
             currents[layer][j][i] -= i_decay # maybe allow neg currents
 
 
-def update_ojas(i, layer, st, neurons):
-    for j, n in enumerate(neurons[layer - 1]):
-        for k, f in enumerate(neurons[layer - 2]):
-            if (layer == 2 and k == len(neurons[layer - 2])) or (layer == 3 and k == len(neurons[layer - 2])):
+def update_ojas(layer, rates, neurons):
+    for j, n in enumerate(neurons[layer]):
+        for k, f in enumerate(neurons[layer - 1]):
+            if (layer == 1 and k == len(neurons[layer - 1])) or (layer == 2 and k == len(neurons[layer - 1])):
                 pass
             else:
-                f = st[layer - 1][k][i]
-                s = st[layer][j][i]
-                updates = ojas(f, s, weights[layer - 1][j][k])
-                weights[layer - 1][j][k] += updates
+                pre = rates[layer-1][k]
+                post = rates[layer][j]
+
+                updates = ojas(post, pre, weights[layer][j][k])
+
+                # if(f == 1):
+                #     if(s == 0):
+                #         pass
+                        # print(updates, f, s, j, k)
+
+
+
+
+                weights[layer][j][k] += updates
 
 
 def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
@@ -146,9 +158,9 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
     st[2][-1] = array([[1]*len(times)])
 
     if ans is not None:
-        weights[1][ans][-1] = 1
-        weights[2][ans_two][-1] = 1
-        weights[2][dimen**2 + ans_three][-1] = 1
+        weights[1][ans][-1] = 3
+        weights[2][ans_two][-1] = 3
+        weights[2][dimen**2 + ans_three][-1] = 3
         
     currents = [full((input_size+1, len(times)), i_inc)]
     currents += [zeros((len(x), len(times))) for x in neurons]
@@ -178,9 +190,15 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
 
         pots.append([[x.v for x in layer] for layer in neurons])
 
-        if (bool(update_weights)):
-            update_weights(i, 2, st, neurons)
-            update_weights(i, 3, st, neurons)
+    rates = []
+    for l, st_layer in enumerate(st):
+        if l == 0:
+            continue
+        rates.append([sum(i)/T for i in st[l]])
+
+    if (bool(update_weights)):
+        update_weights(1, rates, neurons)
+        update_weights(2, rates, neurons)
 
     print("RES FIRST", [sum(x) for x in st[1]])
     print("RES SECOND", [sum(x) for x in st[2]])
@@ -191,7 +209,7 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
         weights[2][ans_two][-1] = 0
         weights[2][dimen ** 2 + ans_three][-1] = 0
 
-    print (ans_two)
+    print(ans_two)
 
     return st, currents, pots
 
@@ -219,12 +237,14 @@ def main():
             print(weights[1])
             print(weights[2])
 
-            for i in range(10):
+            for i in range(4):
                 print(i)
-                for j in range(len(matrices)):
+                for j in range(1):
+                    k = 0
+
                     print(matrices[j])
                     print(answers[j])
-                    st, currents, pots = train(matrices[i], update_ojas, answers[i][0], answers[i][1], answers[i][2])
+                    st, currents, pots = train(matrices[k], update_ojas, answers[k][0], answers[k][1], answers[k][2])
                     last_layer = st[-1]
 
                     sums = [sum(x) for x in last_layer]
@@ -233,7 +253,7 @@ def main():
                     print(weights[2])
                     print()
 
-                    return
+                    # return
 
             print("After: ")
             print(weights[1])
