@@ -47,7 +47,7 @@ def gen_weights(input_size, neurons):
     for i in range(1, len(neurons)):
         weights.append(np.random.randn(len(neurons[i]), len(neurons[i - 1])))
         for k in range(len(neurons[i-1])):
-            weights[-1][len(neurons[i])-1][k] = 0
+            weights[-1][len(neurons[i])-1][k] = 0.00001 
     print(weights[0].shape)
     print(weights[1].shape)
     print(weights[2].shape)
@@ -104,7 +104,8 @@ def update_ojas(i, layer, st, neurons):
             else:
                 f = st[layer - 1][k][i]
                 s = st[layer][j][i]
-                weights[layer - 1][j][k] += ojas(f, s, weights[layer - 1][j][k])
+                updates = ojas(f, s, weights[layer - 1][j][k])
+                weights[layer - 1][j][k] += updates
 
 
 def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
@@ -184,7 +185,7 @@ def main():
             print(weights[1])
             print(weights[2])
 
-            for i in range(iters):
+            for i in range(10):
                 print(i)
                 for j in range(len(matrices)):
                     print(matrices[j])
@@ -218,10 +219,6 @@ def main():
             sums = [sum(x) for x in last_layer]
             print(sums)
             print("\n")
-
-
-
-
 
 main()
 
