@@ -78,7 +78,7 @@ def integrate(i, layer, st, currents, teach=False):
             # print(prev_currents.shape)
             res_currents = multiply(prev_currents, st[layer - 1][:, i])
 
-            tes = weights[layer - 1][j][j]
+            # tes = weights[layer - 1][j][j]
 
 
             # print(layer)
@@ -86,11 +86,11 @@ def integrate(i, layer, st, currents, teach=False):
             # print(res_currents.shape)
             dv = dot(weights[layer - 1][j], res_currents)
 
-            if layer == 2 and j == 0:
+            '''if layer == 3 and j == 100:
                 temp = st[layer - 1][:, i]
                 print("RESULT")
-                print(weights[layer - 1][j][100])
-                print(j, dv)
+                print(weights[layer - 1][j][-1])
+                print(j, dv)'''
 
 
             n.v += dv
@@ -174,7 +174,7 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
 
         integrate(i, 2, st, currents, bool(ans))
 
-        # integrate(i, 3, st, currents, bool(ans))
+        integrate(i, 3, st, currents, bool(ans))
 
         pots.append([[x.v for x in layer] for layer in neurons])
 
@@ -184,6 +184,7 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
 
     print("RES FIRST", [sum(x) for x in st[1]])
     print("RES SECOND", [sum(x) for x in st[2]])
+    print("RES THIRD", [sum(x) for x in st[3]])
 
     if ans is not None:
         weights[1][ans][-1] = 0
