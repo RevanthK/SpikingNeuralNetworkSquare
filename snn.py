@@ -56,8 +56,6 @@ def gen_weights(input_size, neurons):
         for j in range(len(neurons[i])):
             weights[i][j][-1] = .00001
 
-
-
     # print("YOYOYO")
     print(weights[0].shape)
     print(weights[1].shape)
@@ -89,6 +87,7 @@ def integrate(i, layer, st, currents, teach=False):
             dv = dot(weights[layer - 1][j], res_currents)
 
             if layer == 2 and j == 0:
+                temp = st[layer - 1][:, i]
                 print("RESULT")
                 print(weights[layer - 1][j][100])
                 print(j, dv)
@@ -120,7 +119,7 @@ def integrate(i, layer, st, currents, teach=False):
 def update_ojas(i, layer, st, neurons):
     for j, n in enumerate(neurons[layer - 1]):
         for k, f in enumerate(neurons[layer - 2]):
-            if layer == 2 and k == 100:
+            if (layer == 2 and k == len(neurons[layer - 2])) or (layer == 3 and k == len(neurons[layer - 2])):
                 pass
             else:
                 f = st[layer - 1][k][i]
@@ -143,7 +142,8 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
 
     st += [zeros((len(x), len(times))) for x in neurons]
     st[0] = np.append(st[0], [[1]*len(times)], axis=0)
-    # st[2] = np.append(st[2], [[1] * len(times)], axis=0)
+    st[1][-1] = array([[1]*len(times)])
+    st[2][-1] = array([[1]*len(times)])
 
     if ans is not None:
         weights[1][ans][-1] = 1
@@ -153,7 +153,9 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
     currents = [full((input_size+1, len(times)), i_inc)]
     currents += [zeros((len(x), len(times))) for x in neurons]
 
-    # currents[1] = np.append(currents[1], [[teach_current] * len(times)], axis=0)
+    currents[1][-1] = array([[teach_current] * len(times)])
+    currents[2][-1] = array([[teach_current] * len(times)])
+
     # currents[2] = np.append(currents[2], [[teach_current] * len(times)], axis=0)
     # print(currents[0])
 
