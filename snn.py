@@ -17,7 +17,7 @@ T = 25
 dt = .1
 
 
-i_inc = .5 # current delta for spike
+i_inc = 1 # current delta for spike
 i_decay = .001
 i_max = .5
 
@@ -42,17 +42,23 @@ neurons = [
 ]
 
 def gen_weights(input_size, neurons):
-    weights = []
-    weights.append(full((input_size+1, len(neurons[0])), 0))
+    weights = [full((input_size+1, len(neurons[0])), 0)]
+
 
     for i in range(input_size):
-        weights[0][i] = 1
+        weights[0][i][i] = 1
 
     for i in range(1, len(neurons)):
-        weights.append(np.random.randn(len(neurons[i]), len(neurons[i - 1])))
-        for k in range(len(neurons[i-1])):
-            weights[-1][len(neurons[i])-1][k] = 0.00001 
-            
+        weights.append(np.random.uniform(0, 1, (len(neurons[i]), len(neurons[i - 1]))))
+        '''for k in range(len(neurons[i-1])):
+            weights[-1][k][len(neurons[i - 1])-1] = 0.00001
+            print(weights[-1][len(neurons[i])-1][k])'''
+        for j in range(len(neurons[i])):
+            weights[i][j][-1] = .00001
+
+
+
+    # print("YOYOYO")
     print(weights[0].shape)
     print(weights[1].shape)
     print(weights[2].shape)
@@ -74,10 +80,19 @@ def integrate(i, layer, st, currents, teach=False):
             # print(prev_currents.shape)
             res_currents = multiply(prev_currents, st[layer - 1][:, i])
 
+            tes = weights[layer - 1][j][j]
+
+
             # print(layer)
             # print(weights[layer - 1].shape)
             # print(res_currents.shape)
             dv = dot(weights[layer - 1][j], res_currents)
+
+            if layer == 2 and j == 0:
+                print("RESULT")
+                print(weights[layer - 1][j][100])
+                print(j, dv)
+
 
             n.v += dv
 
@@ -90,7 +105,7 @@ def integrate(i, layer, st, currents, teach=False):
         currents[layer][j][i] =  currents[layer][j][i - 1]
 
         if res:
-            # print "Spiked ", layer, j, i
+            # print ("Spiked ", layer, j, i)
             currents[layer][j][i] += i_inc
 
             n.t_rest = times[i] + n.t_delay
@@ -105,7 +120,7 @@ def integrate(i, layer, st, currents, teach=False):
 def update_ojas(i, layer, st, neurons):
     for j, n in enumerate(neurons[layer - 1]):
         for k, f in enumerate(neurons[layer - 2]):
-            if k == len(neurons[layer-2]) - 1:
+            if layer == 2 and k == 100:
                 pass
             else:
                 f = st[layer - 1][k][i]
@@ -125,7 +140,6 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
             neuron.clear()
 
     st = [array([array(gen_st(x, len(times), mult)) for x in inputs])]
-    print("FIRST ST", [sum(x) for x in st[0]])
 
     st += [zeros((len(x), len(times))) for x in neurons]
     st[0] = np.append(st[0], [[1]*len(times)], axis=0)
@@ -155,9 +169,10 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
 
     for i, t in enumerate(times):
         integrate(i, 1, st, currents, bool(ans))
+
         integrate(i, 2, st, currents, bool(ans))
 
-        integrate(i, 3, st, currents, bool(ans))
+        # integrate(i, 3, st, currents, bool(ans))
 
         pots.append([[x.v for x in layer] for layer in neurons])
 
@@ -165,10 +180,15 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
             update_weights(i, 2, st, neurons)
             update_weights(i, 3, st, neurons)
 
+    print("RES FIRST", [sum(x) for x in st[1]])
+    print("RES SECOND", [sum(x) for x in st[2]])
+
     if ans is not None:
         weights[1][ans][-1] = 0
         weights[2][ans_two][-1] = 0
         weights[2][dimen ** 2 + ans_three][-1] = 0
+
+    print (ans_two)
 
     return st, currents, pots
 
@@ -204,15 +224,13 @@ def main():
                     st, currents, pots = train(matrices[i], update_ojas, answers[i][0], answers[i][1], answers[i][2])
                     last_layer = st[-1]
 
-                    return 
-
                     sums = [sum(x) for x in last_layer]
                     print(sums)
                     print(weights[1])
                     print(weights[2])
                     print()
 
-                    return 
+                    return
 
             print("After: ")
             print(weights[1])
