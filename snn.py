@@ -276,7 +276,7 @@ def main():
         weights[1] = np.load("weights1.npy")
         weights[2] = np.load("weights2.npy")
 
-    with open('test_squares.txt', 'rb+') as f:
+    with open('squares.txt', 'rb+') as f:
         test_squares = pickle.load(f)
         matrices = test_squares[0]
         for matrix in matrices:
