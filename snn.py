@@ -7,7 +7,7 @@ from neuron import neuron
 from rules import *
 from spike_train import *
 from lines import gen_square
-
+from sklearn.preprocessing import normalize
 from sys import argv
 import pickle
 
@@ -145,6 +145,7 @@ def update_ojas(layer, rates, neurons):
 
 
                 weights[layer][j][k] += updates
+        weights[layer][j] = normalize([weights[layer][j]])
 
 
 def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
