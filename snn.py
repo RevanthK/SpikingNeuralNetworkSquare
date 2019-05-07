@@ -56,7 +56,7 @@ def gen_weights(input_size, neurons):
             weights[-1][k][len(neurons[i - 1])-1] = 0.00001
             print(weights[-1][len(neurons[i])-1][k])'''
         for j in range(len(neurons[i])):
-            weights[i][j][-1] = .00001
+            weights[i][j][-1] = 0.0001
 
     # print("YOYOYO")
     print(weights[0].shape)
@@ -213,9 +213,9 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
     print("RES THIRD", [sum(x) for x in st[3]])
 
     if ans is not None:
-        weights[1][ans][-1] = 0
-        weights[2][ans_two][-1] = 0
-        weights[2][dimen ** 2 + ans_three][-1] = 0
+        weights[1][ans][-1] = 0.0001
+        weights[2][ans_two][-1] = 0.0001
+        weights[2][dimen ** 2 + ans_three][-1] = 0.0001
 
     print(ans_two)
 
@@ -245,7 +245,7 @@ def main():
             print(weights[1])
             print(weights[2])
 
-            for i in range(5):
+            for i in range(6):
                 print(i)
                 for j in range(len(matrices)):
                     k = j
@@ -275,6 +275,15 @@ def main():
         print("Running: ")
         weights[1] = np.load("weights1.npy")
         weights[2] = np.load("weights2.npy")
+
+    for i in range(1, len(neurons)):
+        # weights.append(np.random.uniform(0, 1, (len(neurons[i]), len(neurons[i - 1]))))
+
+        '''for k in range(len(neurons[i-1])):
+            weights[-1][k][len(neurons[i - 1])-1] = 0.00001
+            print(weights[-1][len(neurons[i])-1][k])'''
+        for j in range(len(neurons[i])):
+            weights[i][j][-1] = 0
 
     with open('squares.txt', 'rb+') as f:
         test_squares = pickle.load(f)

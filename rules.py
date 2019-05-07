@@ -1,4 +1,4 @@
-hebb = .6
+hebb = 1
 sig = .0000001
 w_max = 1
 w_min = 0
