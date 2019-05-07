@@ -17,13 +17,13 @@ T = 25
 dt = .1
 
 
-i_inc = 1 # current delta for spike
+i_inc = .75  # current delta for spike
 i_decay = .001
 i_max = .5
 
 v_decay = .1
 
-teach_current = 20
+teach_current = 60
 
 mult = 1 # spike value in spike train
 
@@ -56,7 +56,7 @@ def gen_weights(input_size, neurons):
             weights[-1][k][len(neurons[i - 1])-1] = 0.00001
             print(weights[-1][len(neurons[i])-1][k])'''
         for j in range(len(neurons[i])):
-            weights[i][j][-1] = 0.0001
+            weights[i][j][-1] = -.1
 
     # print("YOYOYO")
     print(weights[0].shape)
@@ -145,7 +145,10 @@ def update_ojas(layer, rates, neurons):
 
 
                 weights[layer][j][k] += updates
-        weights[layer][j] = normalize([weights[layer][j]])
+
+        weights[layer][j] = weights[layer][j] / linalg.norm(weights[layer][j])
+
+        # print(norm(weights[layer][j]))
 
 
 def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
@@ -204,6 +207,11 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
             continue
         rates.append([sum(i)/(T/dt) for i in st[l]])
 
+    if ans is not None:
+        weights[1][ans][-1] = -.1
+        weights[2][ans_two][-1] = -.1
+        weights[2][dimen ** 2 + ans_three][-1] = -.1
+
     if (bool(update_weights)):
         update_weights(1, rates, neurons)
         update_weights(2, rates, neurons)
@@ -211,11 +219,6 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
     print("RES FIRST", [sum(x) for x in st[1]])
     print("RES SECOND", [sum(x) for x in st[2]])
     print("RES THIRD", [sum(x) for x in st[3]])
-
-    if ans is not None:
-        weights[1][ans][-1] = 0.0001
-        weights[2][ans_two][-1] = 0.0001
-        weights[2][dimen ** 2 + ans_three][-1] = 0.0001
 
     print(ans_two)
 
@@ -284,6 +287,8 @@ def main():
             print(weights[-1][len(neurons[i])-1][k])'''
         for j in range(len(neurons[i])):
             weights[i][j][-1] = 0
+
+    print ("WEIGHTS 2 0 0 ", norm(weights[2][0]))
 
     with open('squares.txt', 'rb+') as f:
         test_squares = pickle.load(f)
