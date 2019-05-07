@@ -3,7 +3,7 @@ from lines import gen_square
 
 def createSquares(dimen):
 
-    square_sizes = [3]
+    square_sizes = [8]
 
     matrices = []
     answers = []

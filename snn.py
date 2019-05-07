@@ -29,7 +29,7 @@ mult = 1 # spike value in spike train
 
 log = False
 
-square_sizes = [3]
+square_sizes = [8]
 
 dimen = 10
 
@@ -133,8 +133,8 @@ def update_ojas(layer, rates, neurons):
 
                 updates = ojas(post, pre, weights[layer][j][k])
 
-                # if layer == 1:
-                #     print(j, updates, pre, post)
+                # if layer == 2:
+                #     print(k, j, updates, pre, post)
 
                 # if(f == 1):
                 #     if(s == 0):
@@ -201,7 +201,7 @@ def train(inputs, update_weights=None, ans=None, ans_two=None, ans_three=None):
     for l, st_layer in enumerate(st):
         if l == 0:
             continue
-        rates.append([sum(i)/T for i in st[l]])
+        rates.append([sum(i)/(T/dt) for i in st[l]])
 
     if (bool(update_weights)):
         update_weights(1, rates, neurons)
@@ -244,10 +244,10 @@ def main():
             print(weights[1])
             print(weights[2])
 
-            for i in range(4):
+            for i in range(5):
                 print(i)
-                for j in range(1):
-                    k = 0
+                for j in range(len(matrices)):
+                    k = j
 
                     print(matrices[j])
                     print(answers[j])
