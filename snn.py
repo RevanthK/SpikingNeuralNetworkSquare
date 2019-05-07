@@ -124,7 +124,9 @@ def update_ojas(layer, rates, neurons):
 
             if k == (len(neurons[layer - 1]) - 1):
                 # print("vro")
-                pass
+                continue
+            elif j == (len(neurons[layer]) - 1):
+                continue
             else:
                 pre = rates[layer-1][k]
                 post = rates[layer][j]
