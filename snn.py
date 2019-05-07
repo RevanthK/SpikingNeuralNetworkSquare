@@ -46,11 +46,11 @@ def gen_weights(input_size, neurons):
 
 
     for i in range(input_size):
-        weights[0][i][i] = 20
+        weights[0][i][i] = 45
 
     for i in range(1, len(neurons)):
-        weights.append(np.random.uniform(0, 1, (len(neurons[i]), len(neurons[i - 1]))))
-        # weights.append(full((len(neurons[i]), len(neurons[i - 1])), 1))
+        # weights.append(np.random.uniform(0, 1, (len(neurons[i]), len(neurons[i - 1]))))
+        weights.append(full((len(neurons[i]), len(neurons[i - 1])), 1))
 
         '''for k in range(len(neurons[i-1])):
             weights[-1][k][len(neurons[i - 1])-1] = 0.00001
@@ -88,7 +88,7 @@ def integrate(i, layer, st, currents, teach=False):
             # print(res_currents.shape)
             dv = dot(weights[layer - 1][j], res_currents)
 
-            '''if layer == 3 and j == 100:
+            '''if layer == 2:
                 temp = st[layer - 1][:, i]
                 print("RESULT")
                 print(weights[layer - 1][j][-1])
@@ -121,13 +121,18 @@ def integrate(i, layer, st, currents, teach=False):
 def update_ojas(layer, rates, neurons):
     for j, n in enumerate(neurons[layer]):
         for k, f in enumerate(neurons[layer - 1]):
-            if (layer == 1 and k == len(neurons[layer - 1])) or (layer == 2 and k == len(neurons[layer - 1])):
+
+            if k == (len(neurons[layer - 1]) - 1):
+                # print("vro")
                 pass
             else:
                 pre = rates[layer-1][k]
                 post = rates[layer][j]
 
                 updates = ojas(post, pre, weights[layer][j][k])
+
+                if layer == 1:
+                    print(j, updates, pre, post)
 
                 # if(f == 1):
                 #     if(s == 0):
@@ -248,6 +253,7 @@ def main():
                     last_layer = st[-1]
 
                     sums = [sum(x) for x in last_layer]
+
                     print(sums)
                     print(weights[1])
                     print(weights[2])
