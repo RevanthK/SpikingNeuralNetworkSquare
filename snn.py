@@ -46,7 +46,7 @@ def gen_weights(input_size, neurons):
 
 
     for i in range(input_size):
-        weights[0][i][i] = 20
+        weights[0][i][i] = 45
 
     for i in range(1, len(neurons)):
         # weights.append(np.random.uniform(0, 1, (len(neurons[i]), len(neurons[i - 1]))))
@@ -129,10 +129,10 @@ def update_ojas(layer, rates, neurons):
                 pre = rates[layer-1][k]
                 post = rates[layer][j]
 
-                updates = ojas(pre, post, weights[layer][j][k])
+                updates = ojas(post, pre, weights[layer][j][k])
 
                 if layer == 1:
-                    print(updates)
+                    print(j, updates, pre, post)
 
                 # if(f == 1):
                 #     if(s == 0):
