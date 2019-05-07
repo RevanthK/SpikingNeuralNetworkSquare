@@ -50,7 +50,7 @@ def gen_weights(input_size, neurons):
 
     for i in range(1, len(neurons)):
         # weights.append(np.random.uniform(0, 1, (len(neurons[i]), len(neurons[i - 1]))))
-        weights.append(full((len(neurons[i]), len(neurons[i - 1])), 1))
+        weights.append(full((len(neurons[i]), len(neurons[i - 1])), 1.0))
 
         '''for k in range(len(neurons[i-1])):
             weights[-1][k][len(neurons[i - 1])-1] = 0.00001
@@ -133,8 +133,8 @@ def update_ojas(layer, rates, neurons):
 
                 updates = ojas(post, pre, weights[layer][j][k])
 
-                if layer == 1:
-                    print(j, updates, pre, post)
+                # if layer == 1:
+                #     print(j, updates, pre, post)
 
                 # if(f == 1):
                 #     if(s == 0):
